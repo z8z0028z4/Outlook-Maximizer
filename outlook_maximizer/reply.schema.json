@@ -1,0 +1,8 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["reply_draft"],
+  "properties": {
+    "reply_draft": {"type": "string"}
+  }
+}
