@@ -19,11 +19,11 @@ Provider subscriptions, API keys, usage limits, or third-party settings can affe
 
 ## Start with a Windows release
 
-When you have a packaged Windows release, extract it first if it is supplied as an archive, then double-click **OutlookMaximizer.exe**. The packaged app does not require a separate Python, PyQt6, or pywin32 installation. Keep the supplied package files together.
+When available, download the packaged Windows release from [GitHub Releases](https://github.com/z8z0028z4/Outlook-Maximizer/releases). If it is supplied as an archive, extract it first, then double-click **OutlookMaximizer.exe**. The packaged app does not require a separate Python, PyQt6, or pywin32 installation. Keep the supplied package files together.
 
 The interface opens in English by default. To switch to Traditional Chinese, select it in the language setting, save, and restart the app. The first launch opens settings and a cancellable AI setup assistant, with Outlook monitoring paused. Select only the AI platforms you want to use: setup searches for their CLIs and can install missing ones with the vendors' installers. Complete any required sign-in in the provider's own window or browser, choose your AI source, and save settings. Then choose **Start monitoring** from the tray menu. AI setup and Google authorization are optional, although an AI source is needed for summaries and drafts. If you exit without saving settings, the first-run guidance appears again next time.
 
-No download link is listed here. Obtain a release package from the project's distribution source when one is available. See [Getting started](GETTING_STARTED.md) for detailed first-run, Google Calendar, and troubleshooting steps.
+See [Getting started](GETTING_STARTED.md) for detailed first-run, Google Calendar, and troubleshooting steps.
 
 ## Everyday use
 

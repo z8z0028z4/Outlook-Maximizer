@@ -7,7 +7,7 @@
 ## 1. 開始之前
 
 1. 開啟並登入 **Windows 傳統版 Outlook**，使用期間保持開啟。本工具不支援新版 Outlook for Windows。
-2. 從專案提供的發行管道取得封裝版。如果收到壓縮檔，請先解壓縮，將檔案放在一起，然後雙擊 **OutlookMaximizer.exe**。封裝版不需要另行安裝 Python 或其套件；本專案頁面目前沒有指定下載網址。
+2. 發行版公開後，從 [GitHub Releases](https://github.com/z8z0028z4/Outlook-Maximizer/releases) 下載封裝版。如果收到壓縮檔，請先解壓縮，將檔案放在一起，然後雙擊 **OutlookMaximizer.exe**。封裝版不需要另行安裝 Python 或其套件。
 3. 準備網路連線。若要使用摘要或回覆草稿，至少需要一個支援的 AI 服務帳號：ChatGPT / Codex、Google Antigravity 或 Claude Code，並安裝、登入對應 CLI。Google Calendar 可選擇稍後設定。
 4. 傳送公司郵件給 AI 或 Google 服務前，請確認所屬組織的規定。裝置、網路、Outlook、Google Workspace 或 AI 平台政策可能限制安裝、登入或存取。
 

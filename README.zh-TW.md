@@ -19,11 +19,11 @@ Outlook Maximizer 是搭配 **Windows 傳統版 Outlook** 使用的桌面助手�
 
 ## 使用 Windows 發行版
 
-取得封裝好的 Windows 發行版後，若收到的是壓縮檔，先解壓縮，再雙擊 **OutlookMaximizer.exe**。封裝版不需要另外安裝 Python、PyQt6 或 pywin32；請將發行包內的檔案放在一起。
+發行版公開後，可從 [GitHub Releases](https://github.com/z8z0028z4/Outlook-Maximizer/releases) 下載封裝好的 Windows 程式。若收到的是壓縮檔，先解壓縮，再雙擊 **OutlookMaximizer.exe**。封裝版不需要另外安裝 Python、PyQt6 或 pywin32；請將發行包內的檔案放在一起。
 
 介面預設為英文；如要切換為繁體中文，請在語言設定中選擇、儲存設定，然後重新啟動程式。第一次啟動會開啟設定與可取消的 AI 設定精靈，Outlook 監控預設暫停。只需勾選你想使用的 AI 平台：精靈會搜尋其 CLI，也可使用供應商的安裝程式安裝缺少的工具。在供應商自己的視窗或瀏覽器完成必要登入，再於設定中選擇 AI 來源並儲存；之後從系統匣選擇 **開始監控**。AI 設定與 Google 授權都是自選項目，但摘要和草稿需要可用的 AI 來源。若尚未儲存設定就結束程式，下次啟動會再次顯示首次引導。
 
-本文件未列出下載連結；發行包可用時，請由專案提供的發行管道取得。詳細步驟請見[首次使用指南](GETTING_STARTED.zh-TW.md)。
+詳細步驟請見[首次使用指南](GETTING_STARTED.zh-TW.md)。
 
 ## 日常使用
 

@@ -7,7 +7,7 @@ This guide covers the packaged Windows app. For a source checkout, including how
 ## 1. Before you start
 
 1. Open and sign in to **classic Outlook for Windows**. Leave it running. New Outlook for Windows is not supported by this app.
-2. Obtain a packaged release through the project's distribution source. If it is an archive, extract it, keep its files together, and double-click **OutlookMaximizer.exe**. A packaged release does not require you to install Python or its packages separately. This project page does not currently specify a download URL.
+2. When a packaged release is available, download it from [GitHub Releases](https://github.com/z8z0028z4/Outlook-Maximizer/releases). If it is an archive, extract it, keep its files together, and double-click **OutlookMaximizer.exe**. A packaged release does not require you to install Python or its packages separately.
 3. Have an internet connection and, if you want summaries or drafts, an account for at least one supported AI service: ChatGPT / Codex, Google Antigravity, or Claude Code. The provider's CLI must be available and signed in. Google Calendar is optional and can be configured later.
 4. Check your organization's rules before transmitting company mail to an AI or Google service. Device, network, Outlook, Google Workspace, and AI-provider policies can restrict installation, sign-in, or access.
 
