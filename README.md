@@ -79,6 +79,10 @@ To build a single-file Windows executable from source, install PyInstaller in th
 
 The resulting `dist/OutlookMaximizer.exe` can be started by double-clicking it. Build on the Windows architecture you intend to support.
 
+## License
+
+Outlook Maximizer's own source code is licensed under the [GNU General Public License v3.0 only](LICENSE) (`GPL-3.0-only`). Third-party components have their own licenses; see [third-party notices](THIRD_PARTY_NOTICES.md) for the Windows build inventory and source references.
+
 ## More help
 
 - [First-time setup and troubleshooting](GETTING_STARTED.md)

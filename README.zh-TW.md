@@ -79,6 +79,10 @@ py -3.12 -m venv .venv
 
 完成後可雙擊 `dist/OutlookMaximizer.exe` 啟動。請使用與目標電腦相同架構的 Windows 環境進行封裝。
 
+## 授權
+
+Outlook Maximizer 自身的原始碼採用 [GNU General Public License v3.0 only](LICENSE)（`GPL-3.0-only`）。第三方元件各自有其授權；Windows 封裝版的初步盤點及原始碼參考位置請見[第三方授權聲明](THIRD_PARTY_NOTICES.md)。
+
 ## 其他說明
 
 - [首次設定與故障排除](GETTING_STARTED.zh-TW.md)
