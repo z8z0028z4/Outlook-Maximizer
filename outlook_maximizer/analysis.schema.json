@@ -1,0 +1,29 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["summary", "action_items", "reply_draft", "events"],
+  "properties": {
+    "summary": {"type": "array", "items": {"type": "string"}},
+    "action_items": {"type": "array", "items": {"type": "string"}},
+    "reply_draft": {"type": "string"},
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["title", "start", "end", "timezone", "all_day", "location", "description", "evidence", "needs_review"],
+        "properties": {
+          "title": {"type": "string"},
+          "start": {"type": "string"},
+          "end": {"type": "string"},
+          "timezone": {"type": "string"},
+          "all_day": {"type": "boolean"},
+          "location": {"type": "string"},
+          "description": {"type": "string"},
+          "evidence": {"type": "string"},
+          "needs_review": {"type": "boolean"}
+        }
+      }
+    }
+  }
+}
