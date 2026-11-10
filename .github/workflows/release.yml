@@ -47,6 +47,7 @@ jobs:
           "tag=$tag" >> $env:GITHUB_OUTPUT
           "publish=$publish" >> $env:GITHUB_OUTPUT
           Write-Host "tag=$tag publish=$publish"
+          exit 0  # "release not found" is the expected answer, not a failure
 
       - name: Collect release assets
         shell: pwsh
