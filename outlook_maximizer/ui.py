@@ -33,7 +33,7 @@ from .settings import Settings, discover_antigravity
 from .settings_dialog import SettingsDialog
 from .window_focus import (
     ForegroundWindow, foreground_window, is_native_window_visible, is_window_above,
-    raise_without_activation,
+    keep_above_outlook, raise_without_activation,
 )
 
 
@@ -232,8 +232,10 @@ class CompanionApp:
         interval = max(1, QApplication.doubleClickInterval())
         if reason == QSystemTrayIcon.ActivationReason.DoubleClick:
             # Windows also sends single-click releases around a double-click.
+            # A double-click always brings the panels forward, like the menu's
+            # "Show panels"; hiding stays in the menu.
             self._tray_double_click_timer.start(interval)
-            self.toggle_panels(exposed=self._tray_first_click_in_front)
+            self.show_panels()
         elif reason == QSystemTrayIcon.ActivationReason.Trigger and not self._tray_double_click_timer.isActive():
             if not self._tray_click_timer.isActive():
                 self._tray_first_click_in_front = self.panels_visible and self._panels_in_front()
@@ -300,11 +302,34 @@ class CompanionApp:
             self._last_external_foreground = current
         if not self.panels_visible:
             return
+        self._sync_outlook_band(current)
         # Outlook can re-stack its existing HWND without changing keyboard focus.
         restore_outlook = current.kind == "outlook" and (changed or not self._panels_in_front())
         restore_pinned = self.settings.always_on_top and (changed or not self._panels_in_front())
         if restore_outlook or restore_pinned:
             self._present()
+
+    def _sync_outlook_band(self, current: ForegroundWindow) -> None:
+        """Unpinned panels stay above Outlook, but not above other applications."""
+        if self.settings.always_on_top:
+            # Qt's stays-on-top flag owns the band; re-apply ours after unpinning.
+            self._outlook_band = None
+            return
+        panels = [panel for panel in (self.summary_panel, self.reply_panel) if panel.isVisible()]
+        if not panels:
+            return
+        own = {int(panel.winId()) for panel in panels}
+        if current.kind == "outlook":
+            wanted = ("outlook", 0)
+        elif current.kind == "other" or (current.kind == "companion" and current.hwnd not in own):
+            # Another app or one of our dialogs is active: sit behind it.
+            wanted = ("behind", current.hwnd)
+        else:
+            return
+        if getattr(self, "_outlook_band", None) == wanted:
+            return
+        results = [keep_above_outlook(int(panel.winId()), *wanted) for panel in panels]
+        self._outlook_band = wanted if all(results) else None
 
     def _panels_in_front(self) -> bool:
         panels = (self.summary_panel, self.reply_panel)
@@ -356,6 +381,10 @@ class CompanionApp:
         self._tray_first_click_in_front = None
         was_hidden = not self.panels_visible
         self.panels_visible = True
+        previous = getattr(self, "_foreground", ForegroundWindow())
+        if not self.settings.always_on_top and previous.kind == "other":
+            # Shown on request over another app: stay put until the user switches.
+            self._outlook_band = ("behind", previous.hwnd)
         self._present(force=True, bring_forward=True)
         self._update_tray()
         if was_hidden:
@@ -368,6 +397,11 @@ class CompanionApp:
         self._tray_first_click_in_front = None
         self.debounce_timer.stop()
         self.panels_visible = False
+        if not self.settings.always_on_top:
+            # Hidden panels must not come back stuck in the topmost band.
+            for panel in (self.summary_panel, self.reply_panel):
+                keep_above_outlook(int(panel.winId()), "normal")
+            self._outlook_band = None
         self.state.cancel_pending()
         for panel in (self.summary_panel, self.reply_panel):
             if panel.state == "loading":

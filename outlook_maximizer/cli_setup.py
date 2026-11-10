@@ -18,7 +18,7 @@ import tempfile
 import threading
 import time
 
-from .process_launch import popen_external, run_external
+from .process_launch import hidden_console_options, popen_external, run_external
 from .settings import discover_antigravity, discover_codex
 
 
@@ -139,13 +139,12 @@ def _auth_status(provider: str, executable: str, *, timeout: float = 10) -> tupl
     # AGY's documented --version verifies the binary, not the user's login.
     if provider == "antigravity":
         return "unknown", ""
-    flags = subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
     try:
         result = run_external(
             [executable, *_AUTH_ARGS[provider]], stdin=subprocess.DEVNULL,
             stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
             encoding="utf-8", errors="replace", timeout=timeout,
-            creationflags=flags, shell=False,
+            shell=False, **hidden_console_options(),
         )
     except (OSError, ValueError, subprocess.SubprocessError):
         return "unknown", ""
@@ -178,7 +177,7 @@ def _claude_compatibility(executable: str, *, timeout: float = 8) -> bool | None
             [executable, "--help"], stdin=subprocess.DEVNULL,
             stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
             encoding="utf-8", errors="replace", timeout=timeout,
-            creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0, shell=False,
+            shell=False, **hidden_console_options(),
         )
     except (OSError, ValueError, subprocess.SubprocessError):
         return None
@@ -280,7 +279,7 @@ def _run_installer(provider: str, cancel: threading.Event, timeout: float) -> No
         process = popen_external(
             [shell, "-NoProfile", "-NonInteractive", "-Command", command],
             stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-            creationflags=subprocess.CREATE_NO_WINDOW, env=env, shell=False,
+            env=env, shell=False, **hidden_console_options(),
         )
     except OSError as exc:
         raise CliSetupError("無法啟動安裝程式。請檢查公司安全設定。") from exc

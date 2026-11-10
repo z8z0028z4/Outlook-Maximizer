@@ -134,7 +134,7 @@ class PanelStackTests(unittest.TestCase):
         self.assertGreaterEqual(self.app.summary_panel.y(), area.top())
         self.assertLessEqual(self.app.reply_panel.geometry().bottom(), area.bottom())
 
-    def test_tray_double_click_toggles_once_including_single_click_notifications(self):
+    def test_tray_double_click_always_shows_including_single_click_notifications(self):
         reason = QSystemTrayIcon.ActivationReason
         analysis = self.app.state.analysis
         for before in (True, False):
@@ -143,11 +143,11 @@ class PanelStackTests(unittest.TestCase):
             for event in (reason.Trigger, reason.DoubleClick, reason.Trigger):
                 self.app.tray.activated.emit(event)
             self.qt_app.processEvents()
-            self.assertEqual(self.app.panels_visible, not before)
+            self.assertEqual(self.app.panels_visible, True)
             QTest.qWait(QApplication.doubleClickInterval() + 50)
-            self.assertEqual(self.app.panels_visible, not before)
-            self.assertEqual(self.app.summary_panel.isVisible(), not before)
-            self.assertEqual(self.app.reply_panel.isVisible(), not before)
+            self.assertEqual(self.app.panels_visible, True)
+            self.assertEqual(self.app.summary_panel.isVisible(), True)
+            self.assertEqual(self.app.reply_panel.isVisible(), True)
             self.assertIs(self.app.state.analysis, analysis)
 
     def test_tray_single_click_still_shows_hidden_panels(self):

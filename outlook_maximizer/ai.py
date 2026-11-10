@@ -14,7 +14,7 @@ import time
 from typing import Callable
 
 from .models import Analysis, MailSnapshot, ValidationError
-from .process_launch import popen_external
+from .process_launch import hidden_console_options, popen_external
 from .settings import Settings, discover_codex
 
 
@@ -33,12 +33,11 @@ def run_cli(command: list[str], prompt: str, cancel: threading.Event, *, timeout
         raise AnalysisCancelled("已切換信件。")
     if timeout <= 0:
         raise AIError("AI 回應逾時。可在設定增加等待時間，或稍後重試。")
-    flags = subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
     try:
         process = popen_external(
             command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
             text=True, encoding="utf-8", errors="replace", cwd=workspace,
-            creationflags=flags, shell=False,
+            shell=False, **hidden_console_options(),
         )
     except OSError as exc:
         raise AIError(f"無法啟動 {provider}。請檢查執行檔路徑與公司端點防護設定。") from exc

@@ -17,6 +17,23 @@ _PATH_VARIABLES = {
 }
 
 
+def hidden_console_options() -> dict:
+    """Run a console CLI in its own hidden console instead of no console at all.
+
+    CREATE_NO_WINDOW hides only the direct child. When that child (Codex,
+    Claude, agy) starts its own console helpers - git, node, PowerShell policy
+    hooks - Windows has no console to give them and opens a new, visible one,
+    which the user sees as a brief terminal flash on every opened mail. A
+    hidden console is inherited by every descendant, so nothing is shown.
+    """
+    if os.name != "nt":
+        return {}
+    startupinfo = subprocess.STARTUPINFO()
+    startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+    startupinfo.wShowWindow = 0  # SW_HIDE
+    return {"creationflags": subprocess.CREATE_NEW_CONSOLE, "startupinfo": startupinfo}
+
+
 def _outside_bundle(path: str, bundle: str) -> bool:
     """Keep an environment path unless it points into this extracted bundle."""
     candidate = path.strip().strip('"')

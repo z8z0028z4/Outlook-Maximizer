@@ -83,6 +83,41 @@ def raise_without_activation(hwnd: int) -> bool:
         return False
 
 
+_HWND_TOPMOST = -1
+_HWND_NOTOPMOST = -2
+
+
+def keep_above_outlook(hwnd: int, mode: str, reference: int = 0) -> bool:
+    """Move an unpinned panel between the topmost and normal bands.
+
+    A background process cannot raise a normal window above the foreground
+    window, so a plain HWND_TOP raise loses to Outlook once Outlook has been
+    clicked. While Outlook is active the panel is topmost instead ("outlook");
+    when another application becomes active it is placed just behind that
+    window ("behind"), which also clears the topmost band; "normal" only
+    clears the topmost band.
+    """
+    native = _win32()
+    if native is None:
+        return False
+    gui, _process, native_error = native
+    try:
+        if not hwnd or not gui.IsWindow(hwnd):
+            return False
+        if mode == "outlook":
+            insert_after = _HWND_TOPMOST
+        elif mode == "normal":
+            insert_after = _HWND_NOTOPMOST
+        elif mode == "behind" and reference and reference != hwnd and gui.IsWindow(reference):
+            insert_after = reference
+        else:
+            return False
+        result = gui.SetWindowPos(hwnd, insert_after, 0, 0, 0, 0, _RAISE_FLAGS)
+        return result is None or bool(result)
+    except (native_error, OSError, TypeError, ValueError, OverflowError):
+        return False
+
+
 def is_native_window_visible(hwnd: int) -> bool | None:
     """Check native visibility; return None when the platform cannot be queried."""
     native = _win32()

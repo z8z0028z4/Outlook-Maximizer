@@ -143,18 +143,29 @@ class PopupVisibilityTests(unittest.TestCase):
         self.assertTrue(self.app.panels_visible)
         self.assert_visible(True)
 
-    def test_double_click_hides_if_panels_were_exposed_at_first_click(self):
+    def test_double_click_shows_even_if_panels_were_exposed_at_first_click(self):
         self.app._check_foreground()
         reason = QSystemTrayIcon.ActivationReason
         self.app.tray.activated.emit(reason.Trigger)
         self.above.return_value = False  # An external window moved in front.
+        self.raised.reset_mock()
         self.app.tray.activated.emit(reason.DoubleClick)
         self.app.tray.activated.emit(reason.Trigger)
         QTest.qWait(QApplication.doubleClickInterval() + 40)
-        self.assertFalse(self.app.panels_visible)
-        self.assert_visible(False)
+        self.assertTrue(self.app.panels_visible)
+        self.assert_visible(True)
+        self.assertGreaterEqual(self.raised.call_count, 2)
 
-    def test_closed_previous_app_does_not_prevent_double_click_hiding(self):
+    def test_double_click_shows_hidden_panels_like_the_menu(self):
+        self.app.hide_panels()
+        self.foreground.return_value = TRAY
+        self.raised.reset_mock()
+        self.app.tray.activated.emit(QSystemTrayIcon.ActivationReason.DoubleClick)
+        self.assertTrue(self.app.panels_visible)
+        self.assert_visible(True)
+        self.assertEqual(self.raised.call_count, 2)
+
+    def test_closed_previous_app_does_not_prevent_double_click_showing(self):
         self.app._foreground = COMPANION
         self.app._last_external_foreground = OUTLOOK
         self.foreground.return_value = TRAY
@@ -163,8 +174,8 @@ class PopupVisibilityTests(unittest.TestCase):
         with patch.object(QApplication, "platformName", return_value="windows"), \
                 patch("outlook_maximizer.ui.is_native_window_visible", side_effect=native_visibility):
             self.app.tray.activated.emit(QSystemTrayIcon.ActivationReason.DoubleClick)
-        self.assertFalse(self.app.panels_visible)
-        self.assert_visible(False)
+        self.assertTrue(self.app.panels_visible)
+        self.assert_visible(True)
 
     def test_first_background_show_waits_for_outlook(self):
         for panel in (self.app.summary_panel, self.app.reply_panel):
@@ -234,18 +245,17 @@ class PopupVisibilityTests(unittest.TestCase):
         self.assertFalse(self.app.retry_action.isEnabled())
         self.assertFalse(self.app.debounce_timer.isActive())
 
-    def test_double_click_recovers_covered_windows_then_hides_exposed_windows(self):
+    def test_double_click_shows_both_covered_and_exposed_windows(self):
         self.app._foreground = OUTLOOK
         self.foreground.return_value = TRAY
         reason = QSystemTrayIcon.ActivationReason
-        for exposed, expected in ((False, True), (True, False)):
+        for exposed, expected in ((False, True), (True, True)):
             self.above.return_value = exposed
             for event in (reason.Trigger, reason.DoubleClick, reason.Trigger):
                 self.app.tray.activated.emit(event)
             QTest.qWait(QApplication.doubleClickInterval() + 40)
             self.assertEqual(self.app.panels_visible, expected)
             self.assert_visible(expected)
-        self.assertTrue(self.above.called)
 
     def test_menu_show_and_hide_are_unambiguous_even_when_covered(self):
         self.foreground.return_value = OTHER
@@ -286,6 +296,52 @@ class PopupVisibilityTests(unittest.TestCase):
         self.assertIs(self.app.state.analysis, analysis)
         self.assertEqual(self.app.state.generation, generation)
         self.assertTrue(self.app.state.reply_received)
+
+    def test_unpinned_panels_stay_above_outlook_but_behind_other_apps(self):
+        with patch("outlook_maximizer.ui.keep_above_outlook", return_value=True) as band:
+            self.app._check_foreground()
+            self.assertEqual([call.args[1] for call in band.call_args_list], ["outlook", "outlook"])
+            band.reset_mock()
+            # Clicking a panel, then Outlook again, keeps the topmost band.
+            self.foreground.return_value = ForegroundWindow(int(self.app.summary_panel.winId()), "companion")
+            self.app._check_foreground()
+            self.foreground.return_value = OUTLOOK
+            self.app._check_foreground()
+            band.assert_not_called()
+            # One of our dialogs (e.g. settings) is not covered by the panels.
+            self.foreground.return_value = COMPANION
+            self.app._check_foreground()
+            self.assertEqual([call.args[1:] for call in band.call_args_list], [("behind", COMPANION.hwnd)] * 2)
+            band.reset_mock()
+            self.foreground.return_value = OUTLOOK
+            self.app._check_foreground()
+            self.assertEqual([call.args[1] for call in band.call_args_list], ["outlook", "outlook"])
+            band.reset_mock()
+            self.foreground.return_value = OTHER
+            self.app._check_foreground()
+            self.assertEqual([call.args[1:] for call in band.call_args_list], [("behind", OTHER.hwnd)] * 2)
+            band.reset_mock()
+            self.foreground.return_value = OUTLOOK
+            self.app._check_foreground()
+            self.assertEqual([call.args[1] for call in band.call_args_list], ["outlook", "outlook"])
+
+    def test_pinned_panels_leave_the_band_to_qt(self):
+        with patch("outlook_maximizer.ui.keep_above_outlook", return_value=True) as band:
+            self.app._pin_windows(True)
+            band.reset_mock()
+            for current in (OUTLOOK, OTHER, OUTLOOK):
+                self.foreground.return_value = current
+                self.app._check_foreground()
+            band.assert_not_called()
+        for panel in (self.app.summary_panel, self.app.reply_panel):
+            self.assertTrue(panel.windowFlags() & Qt.WindowType.WindowStaysOnTopHint)
+
+    def test_hidden_unpinned_panels_leave_the_topmost_band(self):
+        with patch("outlook_maximizer.ui.keep_above_outlook", return_value=True) as band:
+            self.app._check_foreground()
+            band.reset_mock()
+            self.app.hide_panels()
+            self.assertEqual([call.args[1] for call in band.call_args_list], ["normal", "normal"])
 
     def test_shutdown_stops_foreground_checks(self):
         self.app._foreground_timer.start()
