@@ -1,0 +1,68 @@
+name: Windows release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install pinned build dependencies
+        run: python -m pip install PyQt6==6.10.1 PyQt6-sip==13.10.3 PyQt6-Qt6==6.10.1 pywin32==311 tzdata==2025.2 PyInstaller==6.18.0 pyinstaller-hooks-contrib==2026.0
+
+      - name: Unit tests
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: python -m unittest discover -s tests -t .
+
+      - name: Build executable
+        run: python scripts/build_windows.py
+
+      - name: Packaged self-test
+        run: python scripts/verify_packaged.py dist/OutlookMaximizer.exe
+
+      - name: Collect release assets
+        shell: pwsh
+        run: |
+          git archive --format=zip --output dist/OutlookMaximizer-source.zip HEAD
+          Compress-Archive -Path third_party_licenses/*, LICENSE, THIRD_PARTY_NOTICES.md -DestinationPath dist/OutlookMaximizer-licenses.zip
+          Get-FileHash dist/*.exe, dist/*.zip -Algorithm SHA256 | ForEach-Object { "- ``$(Split-Path $_.Path -Leaf)``: ``$($_.Hash.ToLower())``" } | Out-File dist/checksums.md -Encoding utf8
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: OutlookMaximizer
+          path: dist/*
+
+      - name: Publish GitHub release
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $notes = @"
+          Download **OutlookMaximizer.exe** from Assets and double-click it on Windows x64 (unsigned).
+
+          從 Assets 下載 **OutlookMaximizer.exe**，在 Windows x64 雙擊即可啟動（未數位簽章）。
+
+          ## Fixes / 修正
+          - No terminal window flashes while a mail is analyzed. / 開信分析時不再閃出終端機視窗。
+          - Double-clicking the tray icon always shows the panels, like "Show panels". / 雙擊系統匣圖示一律顯示浮窗，等同右鍵「顯示浮窗」。
+          - Unpinned panels stay above Outlook even after you click a panel and then Outlook; pinned panels stay above all windows. / 未釘選時浮窗永遠在 Outlook 之上；釘選時在所有視窗之上。
+
+          Built by GitHub Actions from commit ``$env:GITHUB_SHA``.
+
+          ## Checksums / SHA-256
+          $(Get-Content dist/checksums.md -Raw)
+          "@
+          gh release create $env:GITHUB_REF_NAME dist/OutlookMaximizer.exe dist/OutlookMaximizer-source.zip dist/OutlookMaximizer-licenses.zip --title "Outlook Maximizer $env:GITHUB_REF_NAME" --notes $notes

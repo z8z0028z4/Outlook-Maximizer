@@ -95,7 +95,8 @@ class ModelCatalogTests(unittest.TestCase):
         self.assertNotEqual(Path(options["cwd"]), Path.cwd())
         self.assertFalse(Path(options["cwd"]).exists())
         if os.name == "nt":
-            self.assertEqual(options["creationflags"], subprocess.CREATE_NO_WINDOW)
+            self.assertEqual(options["creationflags"], subprocess.CREATE_NEW_CONSOLE)
+            self.assertEqual(options["startupinfo"].wShowWindow, 0)
 
     @patch("outlook_maximizer.model_catalog.subprocess.run")
     def test_antigravity_failures_and_timeout_return_empty(self, run):

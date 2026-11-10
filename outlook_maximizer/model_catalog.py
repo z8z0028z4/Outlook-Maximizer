@@ -10,7 +10,7 @@ from pathlib import Path
 import subprocess
 import tempfile
 
-from .process_launch import run_external
+from .process_launch import hidden_console_options, run_external
 
 
 _MAX_CATALOG = 2_000_000
@@ -91,7 +91,7 @@ def load_antigravity_models(executable: str, timeout: float = 8) -> list[ModelOp
                 [str(path), "models"], stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
                 stderr=subprocess.DEVNULL, text=True, encoding="utf-8", errors="replace",
                 cwd=workspace, timeout=timeout, shell=False,
-                creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0,
+                **hidden_console_options(),
             )
     except (OSError, ValueError, TypeError, subprocess.SubprocessError):
         return []

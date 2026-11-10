@@ -4,7 +4,7 @@ from unittest.mock import Mock, patch
 
 from outlook_maximizer.window_focus import (
     ForegroundWindow, _win32, foreground_window, is_native_window_visible, is_window_above,
-    raise_without_activation,
+    keep_above_outlook, raise_without_activation,
 )
 
 
@@ -78,6 +78,19 @@ class WindowFocusTests(unittest.TestCase):
         native[0].SetForegroundWindow.assert_not_called()
         native[0].SetActiveWindow.assert_not_called()
         native[0].ShowWindow.assert_not_called()
+
+    def test_outlook_band_uses_topmost_behind_and_normal_without_activation(self):
+        native = self.native()
+        with patch("outlook_maximizer.window_focus._win32", return_value=native):
+            self.assertTrue(keep_above_outlook(10, "outlook"))
+            self.assertTrue(keep_above_outlook(10, "behind", 30))
+            self.assertTrue(keep_above_outlook(10, "normal"))
+            self.assertFalse(keep_above_outlook(10, "behind", 10))
+            self.assertFalse(keep_above_outlook(10, "behind", 0))
+        self.assertEqual([call.args for call in native[0].SetWindowPos.call_args_list], [
+            (10, -1, 0, 0, 0, 0, 0x0213), (10, 30, 0, 0, 0, 0, 0x0213), (10, -2, 0, 0, 0, 0, 0x0213),
+        ])
+        native[0].SetForegroundWindow.assert_not_called()
 
     def test_raise_rejects_missing_window_and_native_failure(self):
         native = self.native()

@@ -9,6 +9,17 @@ from unittest.mock import MagicMock, patch
 from outlook_maximizer import process_launch
 
 
+class HiddenConsoleTests(unittest.TestCase):
+    def test_descendants_inherit_a_hidden_console_on_windows(self):
+        options = process_launch.hidden_console_options()
+        if os.name != "nt":
+            self.assertEqual(options, {})
+            return
+        self.assertEqual(options["creationflags"], subprocess.CREATE_NEW_CONSOLE)
+        self.assertTrue(options["startupinfo"].dwFlags & subprocess.STARTF_USESHOWWINDOW)
+        self.assertEqual(options["startupinfo"].wShowWindow, 0)
+
+
 class ProcessLaunchTests(unittest.TestCase):
     def setUp(self):
         if os.name != "nt":
