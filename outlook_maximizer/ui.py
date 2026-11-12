@@ -29,7 +29,7 @@ from .i18n import tr, translate_message
 from .models import Analysis, CalendarEvent, MonitorNotice, ValidationError
 from .model_catalog import load_antigravity_models, load_codex_models
 from .outlook_monitor import OutlookMonitor
-from .reply_dialog import ReplyDirectionDialog
+from .reply_editor import ReplyDirectionEditor
 from .settings import Settings, discover_antigravity
 from .settings_dialog import SettingsDialog
 from .window_focus import (
@@ -147,7 +147,7 @@ class CompanionApp:
                                   self._t("首次使用：請先設定 AI，或從系統匣開始監控。") if self._first_run else
                                   self._t("正在準備連線…"))
         self.settings_window: SettingsDialog | None = None
-        self.reply_direction_window: ReplyDirectionDialog | None = None
+        self.reply_direction_editor: ReplyDirectionEditor | None = None
         self.ai_setup_window: AiSetupDialog | None = None
         self.edited_events: dict[int, CalendarEvent] = {}
         self.calendar_receipts = CalendarReceipts(data_dir)
@@ -512,44 +512,44 @@ class CompanionApp:
     def _reply_header(self) -> None:
         if self.reply_panel.state == "loading":
             return
-        if self.reply_panel.state == "ready":
+        if self.reply_panel.state == "input":
+            self._close_reply_direction()
+        elif self.reply_panel.state == "ready":
             self.reply_panel.collapse()
         else:
             self.open_reply_direction()
 
     def _close_reply_direction(self) -> None:
-        window = getattr(self, "reply_direction_window", None)
-        self.reply_direction_window = None
-        if window and not sip.isdeleted(window):
-            window.reject()
+        editor = getattr(self, "reply_direction_editor", None)
+        self.reply_direction_editor = None
+        if editor and not sip.isdeleted(editor):
+            editor.setEnabled(False)
+            if self.reply_panel.state == "input":
+                self.reply_panel.collapse()
 
     def open_reply_direction(self) -> None:
         if self.closed or not self.panels_visible or not self.state.current:
             return
-        window = getattr(self, "reply_direction_window", None)
-        if window and not sip.isdeleted(window) and window.isVisible():
-            window.raise_()
-            window.activateWindow()
+        editor = getattr(self, "reply_direction_editor", None)
+        if editor and not sip.isdeleted(editor) and self.reply_panel.state == "input":
+            editor.direction_edit.setFocus()
             return
         generation = self.state.generation
-        window = ReplyDirectionDialog(self.state.current.subject, language=self.language, parent=self.reply_panel)
-        self.reply_direction_window = window
-        window.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
+        editor = ReplyDirectionEditor(language=self.language)
+        self.reply_direction_editor = editor
 
-        def submit():
-            if (self.reply_direction_window is window and self.state.generation == generation
-                    and window.direction):
-                self.request_reply(force=True, reply_direction=window.direction)
+        def submit(direction):
+            if (self.reply_direction_editor is editor and self.state.generation == generation
+                    and self.reply_panel.state == "input"):
+                self._close_reply_direction()
+                self.request_reply(force=True, reply_direction=direction)
 
-        def finished():
-            if self.reply_direction_window is window:
-                self.reply_direction_window = None
-
-        window.accepted.connect(submit)
-        window.finished.connect(finished)
-        window.show()
-        window.raise_()
-        window.activateWindow()
+        editor.submitted.connect(submit)
+        editor.cancelled.connect(self._close_reply_direction)
+        self.reply_panel.show_input(editor)
+        self._present(bring_forward=True)
+        self.reply_panel.activateWindow()
+        editor.direction_edit.setFocus()
 
     def request_summary(self, *, force: bool = False) -> None:
         if self.closed or not self.panels_visible:
@@ -574,7 +574,7 @@ class CompanionApp:
             return
         if not self.state.current:
             return
-        if not force and self.reply_panel.state == "loading":
+        if not force and self.reply_panel.state in {"loading", "input"}:
             return
         if self.state.reply_received and not force:
             self._render_reply()
