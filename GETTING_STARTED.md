@@ -31,7 +31,7 @@ To change or add a platform later, open settings from the tray menu and use the 
 
 1. With monitoring running, select one message or meeting item in classic Outlook. The floating summary panel appears; if automatic summaries are enabled, it starts a request for the selected item.
 2. Read the result and compare it with the original. AI can make mistakes or miss context.
-3. Open the reply section when you want a draft. Check the draft, use the copy action, and paste it into an Outlook reply yourself. Outlook Maximizer does not send the reply or accept an invitation for you. Automatic draft generation is off by default and can be changed in settings.
+3. Select **Reply**, type or paste your direction in **How would you like to reply?**, and select **Submit**. Your direction guides the draft ahead of About me and default style. Cancel closes the window without generating a draft; **Change reply direction** lets you try another direction. Check the draft, copy it, and paste it into Outlook yourself. Outlook Maximizer does not send the reply or accept an invitation for you. Automatic draft generation is off by default; enabling it in settings generates drafts without asking for a direction.
 4. Optional: use **About me** in settings to provide relevant role or tone information. That text is saved locally and included with AI requests; do not put secrets there.
 
 Only the selected item is processed for the request. When an item is sent for analysis, its subject, sender, body, received time, and available meeting details, along with optional About me text, go through the selected CLI to its AI service. The provider and CLI may apply their own retention rules.

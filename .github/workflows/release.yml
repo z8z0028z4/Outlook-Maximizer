@@ -72,10 +72,14 @@ jobs:
 
           從 Assets 下載 **OutlookMaximizer.exe**，在 Windows x64 雙擊即可啟動（未數位簽章）。
 
-          ## Fixes / 修正
-          - No terminal window flashes while a mail is analyzed. / 開信分析時不再閃出終端機視窗。
-          - Double-clicking the tray icon always shows the panels, like "Show panels". / 雙擊系統匣圖示一律顯示浮窗，等同右鍵「顯示浮窗」。
-          - Unpinned panels stay above Outlook even after you click a panel and then Outlook; pinned panels stay above all windows. / 未釘選時浮窗永遠在 Outlook 之上；釘選時在所有視窗之上。
+          ## Reply direction / 回覆方向
+          - Select Reply, enter or paste your direction, then Submit to generate a draft. / 點「回覆」後，在「想要怎麼回覆？」輸入或貼上方向，按「送出」才開始草擬。
+          - Your direction takes priority over About me and default reply style for Codex, Antigravity, and Claude. / 三個 AI 平台皆以本次方向優先，About me 作為補充。
+          - Cancel does not generate a draft; changing mail closes the input window. / 取消不會草擬，切換信件會關閉輸入視窗。
+          - Use Change reply direction to regenerate. Automatic replies, if enabled, retain their existing behavior. / 可按「修改回覆方向」重新草擬；自行啟用的自動回覆維持原行為。
+
+          ## Quick test / 快速測試
+          Select an email in classic Outlook, click Reply, paste a direction such as "Politely decline and suggest next Tuesday", and Submit. Check that the draft follows it. Cancel and switching emails must not submit the input. / 在傳統 Outlook 選信，點「回覆」，貼上「婉拒邀請並提議下週二」後送出，確認草稿符合方向；取消或切換信件不應送出方向。
 
           Built by GitHub Actions from commit ``$env:GITHUB_SHA``.
 
@@ -83,4 +87,6 @@ jobs:
           $(Get-Content dist/checksums.md -Raw)
           "@
           $tag = "${{ steps.tag.outputs.tag }}"
-          gh release create $tag dist/OutlookMaximizer.exe dist/OutlookMaximizer-source.zip dist/OutlookMaximizer-licenses.zip --target $env:GITHUB_SHA --title "Outlook Maximizer $tag" --notes $notes
+          $releaseOptions = @()
+          if ($tag -match '-(rc|alpha|beta)[.-]') { $releaseOptions += '--prerelease' }
+          gh release create $tag dist/OutlookMaximizer.exe dist/OutlookMaximizer-source.zip dist/OutlookMaximizer-licenses.zip --target $env:GITHUB_SHA --title "Outlook Maximizer $tag" --notes $notes @releaseOptions

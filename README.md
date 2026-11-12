@@ -29,7 +29,7 @@ See [Getting started](GETTING_STARTED.md) for detailed first-run, Google Calenda
 
 1. Open classic Outlook and start Outlook Maximizer. Select one email or meeting item in Outlook.
 2. Read the summary in the floating panel. Automatic summaries can be controlled in settings. Outlook meeting details may be used to identify a proposed event; reading the item does not accept a meeting invitation.
-3. Open the reply section to generate a draft. Review it, copy it, and paste it into Outlook yourself. Automatic reply generation is off by default; the app does not send mail.
+3. Select **Reply** to open **How would you like to reply?** Type or paste your direction, then select **Submit** to generate a draft. Your direction takes priority over About me and the default reply style. Use **Change reply direction** to generate another draft. Review it, copy it, and paste it into Outlook yourself. Automatic reply generation is off by default; enabling it still generates drafts without asking for a direction.
 4. If a proposed event appears, check its title, dates, time, time zone, location, and notes. Edit or confirm unclear details and choose to add it to Google Calendar. The event is a personal reminder; the app does not add mail recipients as attendees.
 
 The app's default time zone is `Asia/Taipei` when an event does not specify one. Check the time zone in the event editor, especially if you are elsewhere.
@@ -42,7 +42,7 @@ The app uses the Windows notification area (system tray). Use its menu to show o
 
 ## Privacy and local data
 
-When you request a summary or reply, the selected item's subject, sender, body, received time, and available meeting details, together with any optional **About me** text you supplied, are sent through the selected local CLI to its AI service. Summary and reply are separate requests. They are not an offline operation; provider retention, account, and organization rules apply. Check the text before sharing sensitive material.
+When you request a summary or reply, the selected item's subject, sender, body, received time, and available meeting details, together with any optional **About me** text you supplied, are sent through the selected local CLI to its AI service. Your reply direction is included only in the reply request and is not saved in app settings. Summary and reply are separate requests. They are not an offline operation; provider retention, account, and organization rules apply. Check the text before sharing sensitive material.
 
 Google Calendar is optional. After your explicit Google consent, the app requests the `calendar.events.owned` scope, which permits access to events on calendars you own. The app creates the event you choose and may look up that same event when resolving a retry. Event details, including any displayed source evidence, are sent to Google when you add it. The app does not continuously scan or synchronize your calendar.
 

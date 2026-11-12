@@ -29,6 +29,7 @@ from .i18n import tr, translate_message
 from .models import Analysis, CalendarEvent, MonitorNotice, ValidationError
 from .model_catalog import load_antigravity_models, load_codex_models
 from .outlook_monitor import OutlookMonitor
+from .reply_dialog import ReplyDirectionDialog
 from .settings import Settings, discover_antigravity
 from .settings_dialog import SettingsDialog
 from .window_focus import (
@@ -146,6 +147,7 @@ class CompanionApp:
                                   self._t("首次使用：請先設定 AI，或從系統匣開始監控。") if self._first_run else
                                   self._t("正在準備連線…"))
         self.settings_window: SettingsDialog | None = None
+        self.reply_direction_window: ReplyDirectionDialog | None = None
         self.ai_setup_window: AiSetupDialog | None = None
         self.edited_events: dict[int, CalendarEvent] = {}
         self.calendar_receipts = CalendarReceipts(data_dir)
@@ -397,6 +399,7 @@ class CompanionApp:
         self._tray_first_click_in_front = None
         self.debounce_timer.stop()
         self.panels_visible = False
+        self._close_reply_direction()
         if not self.settings.always_on_top:
             # Hidden panels must not come back stuck in the topmost band.
             for panel in (self.summary_panel, self.reply_panel):
@@ -444,6 +447,7 @@ class CompanionApp:
             self.start_monitor()
             return
         self.running = False
+        self._close_reply_direction()
         self.monitor_session += 1
         if self.monitor:
             self.monitor.stop(timeout=.2)
@@ -459,6 +463,7 @@ class CompanionApp:
         self._update_tray()
 
     def _clear_selection(self) -> None:
+        self._close_reply_direction()
         self.debounce_timer.stop()
         self.state.select(None)
         self.edited_events.clear()
@@ -472,6 +477,7 @@ class CompanionApp:
     def _receive_mail(self, mail) -> None:
         if not self.running or (self.state.current and self.state.current.analysis_key == mail.analysis_key):
             return
+        self._close_reply_direction()
         self.debounce_timer.stop()
         self.state.select(mail)
         self.edited_events.clear()
@@ -509,7 +515,41 @@ class CompanionApp:
         if self.reply_panel.state == "ready":
             self.reply_panel.collapse()
         else:
-            self.request_reply()
+            self.open_reply_direction()
+
+    def _close_reply_direction(self) -> None:
+        window = getattr(self, "reply_direction_window", None)
+        self.reply_direction_window = None
+        if window and not sip.isdeleted(window):
+            window.reject()
+
+    def open_reply_direction(self) -> None:
+        if self.closed or not self.panels_visible or not self.state.current:
+            return
+        window = getattr(self, "reply_direction_window", None)
+        if window and not sip.isdeleted(window) and window.isVisible():
+            window.raise_()
+            window.activateWindow()
+            return
+        generation = self.state.generation
+        window = ReplyDirectionDialog(self.state.current.subject, language=self.language, parent=self.reply_panel)
+        self.reply_direction_window = window
+        window.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
+
+        def submit():
+            if (self.reply_direction_window is window and self.state.generation == generation
+                    and window.direction):
+                self.request_reply(force=True, reply_direction=window.direction)
+
+        def finished():
+            if self.reply_direction_window is window:
+                self.reply_direction_window = None
+
+        window.accepted.connect(submit)
+        window.finished.connect(finished)
+        window.show()
+        window.raise_()
+        window.activateWindow()
 
     def request_summary(self, *, force: bool = False) -> None:
         if self.closed or not self.panels_visible:
@@ -529,7 +569,7 @@ class CompanionApp:
             self.edited_events.clear()
         self._submit_job("summary")
 
-    def request_reply(self, *, force: bool = False) -> None:
+    def request_reply(self, *, force: bool = False, reply_direction: str = "") -> None:
         if self.closed or not self.panels_visible:
             return
         if not self.state.current:
@@ -542,12 +582,15 @@ class CompanionApp:
             return
         if force:
             self.state.restart_reply()
-        self._submit_job("reply")
+        if reply_direction:
+            self._submit_job("reply", reply_direction=reply_direction)
+        else:
+            self._submit_job("reply")
 
     def retry_analysis(self) -> None:
         self.request_summary(force=True)
 
-    def _submit_job(self, kind: str) -> None:
+    def _submit_job(self, kind: str, *, reply_direction: str = "") -> None:
         if not self.state.current or self.closed or not self.panels_visible:
             return
         self._job_serial[kind] += 1
@@ -570,7 +613,8 @@ class CompanionApp:
                     return
                 from .ai import create_summarizer
                 provider = create_summarizer(settings)
-                result = provider.analyze(mail, cancel, include_reply=False) if kind == "summary" else provider.generate_reply(mail, cancel)
+                result = (provider.analyze(mail, cancel, include_reply=False) if kind == "summary"
+                          else provider.generate_reply(mail, cancel, reply_direction=reply_direction))
                 self.messages.put((message_kind, generation, serial, result, cancel))
             except AnalysisCancelled:
                 pass
@@ -633,6 +677,9 @@ class CompanionApp:
         self.copy_button.setEnabled(bool(self.state.reply_draft))
         self.copy_button.clicked.connect(self.copy_reply)
         layout.addWidget(self.copy_button)
+        change_direction = _button(self._t("修改回覆方向"))
+        change_direction.clicked.connect(self.open_reply_direction)
+        layout.addWidget(change_direction)
         self.reply_panel.show_content(widget)
 
     def copy_reply(self) -> None:
@@ -924,6 +971,7 @@ class CompanionApp:
                                   font_family=updated.font_family, font_size=updated.font_size,
                                   font_bold=updated.font_bold, font_italic=updated.font_italic)
         if source_changed:
+            self._close_reply_direction()
             self.debounce_timer.stop()
             self.state.clear_results()
             for kind in self._job_serial:
@@ -994,6 +1042,7 @@ class CompanionApp:
         if self.closed:
             return
         self.closed = True
+        self._close_reply_direction()
         self.state.cancel.set()
         self.state.reply_cancel.set()
         self.debounce_timer.stop()

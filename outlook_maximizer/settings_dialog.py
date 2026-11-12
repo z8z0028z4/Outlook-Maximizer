@@ -135,7 +135,7 @@ class SettingsDialog(QDialog):
         self.topmost_check.setChecked(settings.always_on_top)
         for check in (self.auto_summary_check, self.auto_reply_check, self.topmost_check):
             body.addWidget(check)
-        body.addWidget(_label(self._t("關閉自動回覆後，按浮窗的「回覆」才會生成草稿。"), muted=True))
+        body.addWidget(_label(self._t("關閉自動回覆後，按浮窗的「回覆」，輸入方向並送出才會生成草稿。"), muted=True))
 
         self._section(body, self._t("AI 助理"))
         self.ai_setup_button = _button(self._t("登入／搜尋 AI 助理"), self.ai_setup_requested.emit)
