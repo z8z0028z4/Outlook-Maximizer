@@ -72,10 +72,16 @@ jobs:
 
           從 Assets 下載 **OutlookMaximizer.exe**，在 Windows x64 雙擊即可啟動（未數位簽章）。
 
-          ## Fixes / 修正
-          - No terminal window flashes while a mail is analyzed. / 開信分析時不再閃出終端機視窗。
-          - Double-clicking the tray icon always shows the panels, like "Show panels". / 雙擊系統匣圖示一律顯示浮窗，等同右鍵「顯示浮窗」。
-          - Unpinned panels stay above Outlook even after you click a panel and then Outlook; pinned panels stay above all windows. / 未釘選時浮窗永遠在 Outlook 之上；釘選時在所有視窗之上。
+          ## Reply direction / 回覆方向
+          - Select Reply to expand the input inside the existing floating panel, with no separate window. / 點「回覆」直接在既有浮窗下拉展開輸入區，不另開視窗。
+          - The gray placeholder reads "How would you like to reply? (Optional)". Enter a direction or leave it blank, then click the blue Submit button. / 灰色提示「想要怎麼回覆? (選填)」，可輸入方向或留白，按藍色「送出」。
+          - The same panel shows its usual loading spinner, then expands to show the suggested reply. / 同一浮窗顯示原有旋轉動畫，完成後下拉展開回覆建議。
+          - Your direction takes priority over About me and default reply style for Codex, Antigravity, and Claude. / 三個 AI 平台皆以本次方向優先，About me 作為補充。
+          - Click the Reply header again or press Escape to collapse without generating; changing mail clears the input. / 再點回覆標題或按 Escape 可收合而不草擬；切換信件清除輸入。
+          - Use Change reply direction to regenerate. Automatic replies, if enabled, retain their existing behavior. / 可按「修改回覆方向」重新草擬；自行啟用的自動回覆維持原行為。
+
+          ## Quick test / 快速測試
+          Select an email in classic Outlook, click Reply, and Submit with a direction or an empty input. Verify the spinner and draft appear in the same floating panel. / 在傳統 Outlook 選信，點「回覆」，填方向或留白後送出，確認同一浮窗顯示旋轉動畫與回覆建議。
 
           Built by GitHub Actions from commit ``$env:GITHUB_SHA``.
 
@@ -83,4 +89,6 @@ jobs:
           $(Get-Content dist/checksums.md -Raw)
           "@
           $tag = "${{ steps.tag.outputs.tag }}"
-          gh release create $tag dist/OutlookMaximizer.exe dist/OutlookMaximizer-source.zip dist/OutlookMaximizer-licenses.zip --target $env:GITHUB_SHA --title "Outlook Maximizer $tag" --notes $notes
+          $releaseOptions = @()
+          if ($tag -match '-(rc|alpha|beta)[.-]') { $releaseOptions += '--prerelease' }
+          gh release create $tag dist/OutlookMaximizer.exe dist/OutlookMaximizer-source.zip dist/OutlookMaximizer-licenses.zip --target $env:GITHUB_SHA --title "Outlook Maximizer $tag" --notes $notes @releaseOptions

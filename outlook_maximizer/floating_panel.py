@@ -292,6 +292,10 @@ class FloatingPanel(QWidget):
             QPushButton#mailAction {{color:{ink.name()}; background:{fill}; border:1px solid {border}; border-radius:7px; padding:6px 12px;}}
             QPushButton#mailAction:hover {{background:{hover};}}
             QPushButton#mailAction:disabled {{color:{muted.name()};}}
+            QPlainTextEdit#replyDirection {{color:{ink.name()}; background:rgba(120,135,155,18); border:1px solid {border}; border-radius:7px; padding:8px;}}
+            QPushButton#replySubmit {{color:white; background:#4777BB; border:0; border-radius:7px; padding:6px 18px;}}
+            QPushButton#replySubmit:hover {{background:#3968AD;}}
+            QPushButton#replySubmit:disabled {{background:#8CA6CB;}}
             QPushButton#eventEdit {{color:{muted.name()}; background:transparent; border:0; padding:3px;}}
             QPushButton#repeatCalendar {{color:{muted.name()}; background:transparent; border:0; padding:6px 3px; font-size:9pt;}}
             QPushButton#repeatCalendar:hover {{color:{ink.name()}; background:{hover}; border-radius:5px;}}
@@ -394,6 +398,12 @@ class FloatingPanel(QWidget):
         self._replace_content(widget)
         self._transition("ready", self._expanded_height)
 
+    def show_input(self, widget: QWidget) -> None:
+        if self._disposed:
+            return
+        self._replace_content(widget)
+        self._transition("input", min(self._expanded_height, 230))
+
     def show_error(self, message: str) -> None:
         if self._disposed:
             return
@@ -414,6 +424,8 @@ class FloatingPanel(QWidget):
         self._expanded_height = height
         if self.state == "ready":
             self._transition("ready", height)
+        elif self.state == "input":
+            self._transition("input", min(height, 230))
 
     def configure_style(self, *, width: int, expanded_height: int, opacity: float, topmost: bool,
                         background_color: str | None = None, font_family: str | None = None,
@@ -436,7 +448,7 @@ class FloatingPanel(QWidget):
         self.move(position)
         if was_visible:
             self.show()
-        target = self._expanded_height if self.state == "ready" else (self.header.height() if self.state == "collapsed" else min(self._expanded_height, max(105, self.header.height() + 60)) if self.state == "loading" else min(self._expanded_height, 150))
+        target = self._expanded_height if self.state == "ready" else (min(self._expanded_height, 230) if self.state == "input" else self.header.height() if self.state == "collapsed" else min(self._expanded_height, max(105, self.header.height() + 60)) if self.state == "loading" else min(self._expanded_height, 150))
         self._transition(self.state, target)
 
     def moveEvent(self, event) -> None:
