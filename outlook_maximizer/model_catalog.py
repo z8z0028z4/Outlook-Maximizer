@@ -18,6 +18,12 @@ _MAX_MODELS = 100
 _EFFORTS = {"none", "minimal", "low", "medium", "high", "xhigh", "max", "ultra"}
 
 
+def antigravity_model_effort(model_id: str) -> str:
+    """AGY model variants encode effort; unknown/default IDs use CLI defaults."""
+    suffix = model_id.strip().rsplit("-", 1)[-1]
+    return suffix if suffix in {"low", "medium", "high", "xhigh", "max"} else ""
+
+
 @dataclass(frozen=True)
 class ModelOption:
     model_id: str

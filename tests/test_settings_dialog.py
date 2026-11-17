@@ -176,13 +176,45 @@ class SettingsDialogTests(unittest.TestCase):
         self.dialog.model_edit.setText("codex-model")
         self.dialog.codex_effort_combo.setCurrentIndex(self.dialog.codex_effort_combo.findData("high"))
         self.dialog.provider_combo.setCurrentIndex(1)
-        self.dialog.antigravity_model_edit.setText("agy-model")
-        self.dialog.antigravity_effort_combo.setCurrentIndex(self.dialog.antigravity_effort_combo.findData("medium"))
+        self.dialog.antigravity_model_edit.setText("gemini-4-hydrogen-medium")
         self.dialog.provider_combo.setCurrentIndex(0)
         self.dialog.save_button.click()
         updated = self.saved[0]
         self.assertEqual((updated.model, updated.codex_effort), ("codex-model", "high"))
-        self.assertEqual((updated.antigravity_model, updated.antigravity_effort), ("agy-model", "medium"))
+        self.assertEqual((updated.antigravity_model, updated.antigravity_effort), ("gemini-4-hydrogen-medium", "medium"))
+
+    def test_agy_effort_tracks_model_selection_manual_entry_and_catalog_reload(self):
+        combo = self.dialog.antigravity_effort_combo
+        self.dialog.provider_combo.setCurrentIndex(1)
+        self.assertFalse(combo.isEnabled())
+        options = [ModelOption("gemini-4-hydrogen-medium", "Medium"),
+                   ModelOption("gemini-4-hydrogen-high", "High")]
+        self.dialog.set_models("antigravity", options)
+        self.dialog.antigravity_model_combo.setCurrentIndex(1)
+        self.assertEqual(combo.currentData(), "medium")
+        self.dialog.antigravity_model_combo.setCurrentIndex(2)
+        self.assertEqual(combo.currentData(), "high")
+        self.dialog.antigravity_model_edit.setText("custom-low")
+        self.assertEqual(combo.currentData(), "low")
+        self.dialog.set_models("antigravity", options)
+        self.assertEqual(combo.currentData(), "low")
+        self.dialog.antigravity_model_edit.setText("custom-model")
+        self.assertEqual(combo.currentData(), "")
+        self.dialog.antigravity_model_combo.setCurrentIndex(0)
+        self.assertEqual(combo.currentData(), "")
+        self.assertFalse(combo.isEnabled())
+        self.assertTrue(self.dialog.codex_effort_combo.isEnabled())
+        self.assertTrue(self.dialog.claude_effort_combo.isEnabled())
+
+    def test_agy_stale_saved_effort_is_corrected_on_open_and_save(self):
+        dialog = SettingsDialog(Settings(antigravity_model="gemini-4-hydrogen-medium", antigravity_effort="high"))
+        self.addCleanup(dialog.close)
+        saved = []
+        dialog.settings_saved.connect(saved.append)
+        self.assertFalse(dialog.antigravity_effort_combo.isEnabled())
+        self.assertEqual(dialog.antigravity_effort_combo.currentData(), "medium")
+        dialog.save_button.click()
+        self.assertEqual(saved[0].antigravity_effort, "medium")
 
     def test_selecting_cli_default_does_not_save_a_display_label_as_model(self):
         self.dialog.model_combo.setCurrentIndex(0)

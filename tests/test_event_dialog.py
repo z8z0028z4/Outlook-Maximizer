@@ -46,6 +46,26 @@ class EventDialogTests(unittest.TestCase):
         self.saved.assert_not_called()
         self.assertEqual(self.event.description, "原備註")
 
+    def test_partial_event_keeps_known_boundary_and_still_requires_completion(self):
+        for missing, known in (("end", "start"), ("start", "end")):
+            for all_day in (False, True):
+                with self.subTest(missing=missing, all_day=all_day):
+                    event = replace(self.event, all_day=all_day, needs_review=True)
+                    if all_day:
+                        event = replace(event, start="2026-12-01", end="2026-12-02")
+                    event = replace(event, **{missing: ""})
+                    dialog = EventEditor(event, self.saved)
+                    self.addCleanup(dialog.close)
+                    self.assertTrue(dialog.values[f"{known}_date"].text())
+                    self.assertEqual(dialog.values[f"{missing}_date"].text(), "")
+                    if all_day:
+                        self.assertEqual(dialog.values[f"{known}_date"].text(), "2026-12-01")
+                    else:
+                        self.assertEqual(dialog.values[f"{known}_time"].text(), "10:00" if known == "start" else "11:00")
+                    dialog.save_button.click()
+                    self.saved.assert_not_called()
+                    self.assertTrue(dialog.error.text())
+
     def test_oversized_notes_remain_in_editor_with_error(self):
         self.dialog.notes_edit.setPlainText("x" * 8001)
         self.dialog.save_button.click()

@@ -44,8 +44,7 @@ class AntigravityAITests(unittest.TestCase):
         self.assertIsInstance(create_summarizer(Settings(ai_provider="antigravity")), AntigravitySummarizer)
 
     def test_unknown_provider_and_effort_fail_before_launch(self):
-        for settings in (Settings(ai_provider="other"), Settings(codex_effort="arbitrary"),
-                         Settings(ai_provider="antigravity", antigravity_effort="arbitrary")):
+        for settings in (Settings(ai_provider="other"), Settings(codex_effort="arbitrary")):
             with self.subTest(settings=settings), self.assertRaises(AIError):
                 create_summarizer(settings)
 
@@ -67,6 +66,18 @@ class AntigravityAITests(unittest.TestCase):
         command = self.provider().build_command()
         self.assertNotIn("--model", command)
         self.assertNotIn("--effort", command)
+
+    def test_model_is_authoritative_even_with_stale_or_invalid_saved_effort(self):
+        for effort in ("", "low", "high", "arbitrary"):
+            with self.subTest(effort=effort):
+                settings = Settings(ai_provider="antigravity", antigravity_path=sys.executable,
+                                    antigravity_model="gemini-4-hydrogen-medium", antigravity_effort=effort)
+                command = create_summarizer(settings).build_command()
+                self.assertEqual(command[command.index("--effort") + 1], "medium")
+        for model in ("", "custom-model"):
+            with self.subTest(model=model):
+                command = self.provider(antigravity_model=model, antigravity_effort="high").build_command()
+                self.assertNotIn("--effort", command)
 
     def test_missing_cli_reports_friendly_login_guidance(self):
         with patch("outlook_maximizer.ai_antigravity.discover_antigravity", return_value=""):

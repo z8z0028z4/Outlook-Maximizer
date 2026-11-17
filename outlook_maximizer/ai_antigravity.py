@@ -13,6 +13,7 @@ import time
 from .ai import AIError, AnalysisCancelled, CodexSummarizer, build_prompt, run_cli
 from .models import Analysis, MailSnapshot, ValidationError
 from .settings import discover_antigravity
+from .model_catalog import antigravity_model_effort
 
 
 _AGENT_NAME = "outlook-text"
@@ -93,8 +94,6 @@ class AntigravitySummarizer(CodexSummarizer):
             raise AIError("找不到 Antigravity CLI。請在設定選擇 agy.exe，並先在 PowerShell 執行 agy 完成登入。")
         if os.name == "nt" and executable.suffix.lower() != ".exe":
             raise AIError("請選擇原生 agy.exe；郵件不會交給 .cmd、.ps1 或既有 PowerShell 視窗執行。")
-        if self.settings.antigravity_effort not in {"", "low", "medium", "high", "xhigh", "max"}:
-            raise AIError("Antigravity 思考強度設定不正確，請重新選擇。")
         command = [
             str(executable), "--input-format", "stream-json", "--output-format", "stream-json",
             "--json-schema", str(schema_path or Path(__file__).with_name("analysis.schema.json")),
@@ -103,8 +102,9 @@ class AntigravitySummarizer(CodexSummarizer):
         ]
         if self.settings.antigravity_model.strip():
             command.extend(["--model", self.settings.antigravity_model.strip()])
-        if self.settings.antigravity_effort:
-            command.extend(["--effort", self.settings.antigravity_effort])
+        effort = antigravity_model_effort(self.settings.antigravity_model)
+        if effort:
+            command.extend(["--effort", effort])
         return command
 
     def analyze(self, mail: MailSnapshot, cancel: threading.Event | None = None, *,

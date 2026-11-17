@@ -96,13 +96,21 @@ class SettingsTests(unittest.TestCase):
         loaded = Settings.load(self.data)
         self.assertEqual((loaded.background_color, loaded.floating_opacity), ("#ABCDEF", .45))
 
-    def test_independent_efforts_roundtrip_and_invalid_choices_recover(self):
-        Settings(codex_effort="ultra", antigravity_effort="max").save(self.data)
+    def test_codex_effort_roundtrips_and_agy_effort_is_derived(self):
+        Settings(codex_effort="ultra", antigravity_model="gemini-test-max", antigravity_effort="low").save(self.data)
         loaded = Settings.load(self.data)
         self.assertEqual((loaded.codex_effort, loaded.antigravity_effort), ("ultra", "max"))
         Settings(codex_effort="invalid", antigravity_effort="ultra").save(self.data)
         loaded = Settings.load(self.data)
         self.assertEqual((loaded.codex_effort, loaded.antigravity_effort), ("low", ""))
+
+    def test_existing_agy_mismatch_is_repaired_without_opening_settings(self):
+        for model, expected in (("gemini-4-hydrogen-medium", "medium"), ("unknown-model", ""), ("", "")):
+            with self.subTest(model=model):
+                (self.data / "settings.json").write_text(json.dumps({
+                    "antigravity_model": model, "antigravity_effort": "high",
+                }), encoding="utf-8")
+                self.assertEqual(Settings.load(self.data).antigravity_effort, expected)
 
     def test_about_me_roundtrip_and_old_settings_remain_optional(self):
         Settings(about_me="我是專案工程師。\n對外先確認需求，不直接承諾時程。").save(self.data)
