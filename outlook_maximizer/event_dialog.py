@@ -40,16 +40,21 @@ class EventEditor(QDialog):
         body.setSpacing(12)
         outer.addWidget(self.scroll, 1)
         defaults = dict(title=event.title, start_date="", start_time="", end_date="", end_time="", timezone=event.timezone, location=event.location)
-        try:
-            if event.all_day and event.start and event.end:
-                defaults.update(start_date=event.start, end_date=(date.fromisoformat(event.end) - timedelta(days=1)).isoformat())
-            elif event.start and event.end:
-                zone = get_timezone(event.timezone)
-                start = datetime.fromisoformat(event.start.replace("Z", "+00:00")).astimezone(zone)
-                end = datetime.fromisoformat(event.end.replace("Z", "+00:00")).astimezone(zone)
-                defaults.update(start_date=start.strftime("%Y-%m-%d"), start_time=start.strftime("%H:%M"), end_date=end.strftime("%Y-%m-%d"), end_time=end.strftime("%H:%M"))
-        except (ValueError, ValidationError):
-            pass
+        for boundary, value in (("start", event.start), ("end", event.end)):
+            if not value:
+                continue
+            try:
+                if event.all_day:
+                    day = date.fromisoformat(value)
+                    if boundary == "end":
+                        day -= timedelta(days=1)
+                    defaults[f"{boundary}_date"] = day.isoformat()
+                else:
+                    instant = datetime.fromisoformat(value.replace("Z", "+00:00")).astimezone(get_timezone(event.timezone))
+                    defaults[f"{boundary}_date"] = instant.strftime("%Y-%m-%d")
+                    defaults[f"{boundary}_time"] = instant.strftime("%H:%M")
+            except (ValueError, ValidationError):
+                pass
         self.values = {}
         form = QFormLayout()
         for key, label in (("title", self._t("行程名稱")), ("start_date", self._t("開始日期 YYYY-MM-DD")), ("start_time", self._t("開始時間 HH:MM")), ("end_date", self._t("結束日期（全天含當天）")), ("end_time", self._t("結束時間 HH:MM")), ("timezone", self._t("時區")), ("location", self._t("地點"))):

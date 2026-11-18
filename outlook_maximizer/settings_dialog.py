@@ -15,7 +15,7 @@ from PyQt6.QtWidgets import (
 
 from .settings import Settings
 from .floating_panel import surface_colors
-from .model_catalog import ModelOption
+from .model_catalog import ModelOption, antigravity_model_effort
 from .i18n import tr
 
 
@@ -81,6 +81,7 @@ class SettingsDialog(QDialog):
             QCheckBox { color: #26364a; spacing: 10px; padding: 4px 0; }
             QLineEdit, QSpinBox, QComboBox, QPlainTextEdit { background: #ffffff; color: #26364a; border: 1px solid #dce3ed; border-radius: 6px; padding: 6px 8px; }
             QComboBox QLineEdit { border: none; padding: 0; }
+            QComboBox:disabled { color: #9aa5b4; background: #f0f2f6; }
             QComboBox QAbstractItemView { background: #ffffff; color: #26364a; selection-background-color: #e4eaf4; }
             QPushButton { background: #edf1f7; color: #26364a; border: 1px solid #dce3ed; border-radius: 7px; padding: 7px 12px; }
             QPushButton:hover { background: #e4eaf4; }
@@ -399,6 +400,12 @@ class SettingsDialog(QDialog):
                  "claude": self.claude_effort_combo}[provider]
         model_combo = {"codex": self.model_combo, "antigravity": self.antigravity_model_combo,
                        "claude": self.claude_model_combo}[provider]
+        if provider == "antigravity":
+            effort = antigravity_model_effort(self._model_value(model_combo))
+            combo.clear()
+            combo.addItem(effort or self._t("CLI 預設"), effort)
+            combo.setEnabled(False)
+            return
         if selected is None:
             selected = combo.currentData() or ""
         levels = {"codex": ("none", "minimal", "low", "medium", "high", "xhigh", "max", "ultra"),
@@ -536,7 +543,7 @@ class SettingsDialog(QDialog):
                 ai_provider=self.provider_combo.currentData(),
                 codex_effort=self.codex_effort_combo.currentData(),
                 antigravity_path=antigravity_path, antigravity_model=antigravity_model,
-                antigravity_effort=self.antigravity_effort_combo.currentData(),
+                antigravity_effort=antigravity_model_effort(antigravity_model),
                 claude_path=claude_path, claude_model=claude_model,
                 claude_effort=self.claude_effort_combo.currentData(),
                 about_me=about_me,

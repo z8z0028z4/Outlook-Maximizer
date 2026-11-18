@@ -10,6 +10,8 @@ from pathlib import Path
 import re
 import shutil
 
+from .model_catalog import antigravity_model_effort
+
 
 def default_data_dir() -> Path:
     base = Path(os.environ.get("LOCALAPPDATA", Path.home() / "AppData" / "Local"))
@@ -165,8 +167,7 @@ class Settings:
                 config.ui_language = "en"
             if config.codex_effort not in {"", "none", "minimal", "low", "medium", "high", "xhigh", "max", "ultra"}:
                 config.codex_effort = "low"
-            if config.antigravity_effort not in {"", "low", "medium", "high", "xhigh", "max"}:
-                config.antigravity_effort = ""
+            config.antigravity_effort = antigravity_model_effort(config.antigravity_model)
             if config.claude_effort not in {"", "low", "medium", "high", "xhigh", "max"}:
                 config.claude_effort = ""
             config.background_color = config.background_color.upper()
@@ -191,5 +192,7 @@ class Settings:
         data_dir.mkdir(parents=True, exist_ok=True)
         target = data_dir / "settings.json"
         temporary = target.with_suffix(".json.tmp")
-        temporary.write_text(json.dumps(asdict(self), ensure_ascii=False, indent=2), encoding="utf-8")
+        data = asdict(self)
+        data["antigravity_effort"] = antigravity_model_effort(self.antigravity_model)
+        temporary.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
         os.replace(temporary, target)

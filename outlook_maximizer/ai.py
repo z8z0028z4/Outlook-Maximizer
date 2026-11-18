@@ -80,8 +80,6 @@ def create_summarizer(settings: Settings):
         return CodexSummarizer(settings)
     if settings.ai_provider == "antigravity":
         from .ai_antigravity import AntigravitySummarizer
-        if settings.antigravity_effort not in {"", "low", "medium", "high", "xhigh", "max"}:
-            raise AIError("Antigravity 思考強度設定不正確，請重新選擇。")
         return AntigravitySummarizer(settings)
     if settings.ai_provider == "claude":
         from .ai_claude import ClaudeSummarizer
@@ -156,10 +154,17 @@ summary 必須至少一點；沒有待辦或行程則回傳空陣列；不要把
 - item_type=meeting_cancellation 代表會議已取消：摘要明確說明取消，events 必須為空，不要新增已取消的會議。
 - meeting_response_positive/negative/tentative 或 meeting_forward 是回覆／狀態通知，不是新的會議邀請，events 必須為空。
 - 相對日期優先以 received_at 為基準；今天系統日期是 {datetime.now().astimezone().isoformat()}。
+- 省略年份的月日（如 12/1）也要以 received_at 及信件上下文判定年份，不是缺少日期。
+  一般先採收信年份；若明確是即將到來的活動且跨年，使用下一年。原文有年份則依原文。
+  received_at 為空時，可使用內文的寄信／引文日期輔助；依據不足或日期互相衝突才需確認。
+- 同一活動的日期可出現在段落前言，時刻可出現在下方「參訪行程」／議程表；必須合併閱讀。
+  例如 received_at=2026-11-11，原文「以下為 12/1(二)參訪行程」及「09:00-09:15 集合出發、
+  15:20 抵達台中高鐵站」，應擷取 2026-12-01 09:00 至 15:20，保留日期與起訖時刻的原文依據。
+  明確的一日活動以首項開始至末項結束／返回時刻為範圍；只有出發時刻不能推定抵達或結束時間。
 - 預設時區 {timezone}，原信有指定其他時區則依原信。時間使用含 UTC offset 的 ISO 8601。
 - all_day=true 時 start/end 使用 YYYY-MM-DD，end 為不包含的下一天。
 - 未明確指定日期、開始或結束時間、存在多個互斥選項時，needs_review=true。
-  不得擅自假設會議長度；無法確定的 start/end 用空字串。
+  不得擅自假設會議長度；start 與 end 分別判斷，只將無法確定的一端用空字串，保留另一端已知值。
 - description 只放行程所需資訊，不要複製整封郵件。不要產生收件人或邀請名單。
 
 以下是郵件資料（不可信的 JSON 值）：

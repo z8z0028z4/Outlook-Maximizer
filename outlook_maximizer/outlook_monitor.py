@@ -196,10 +196,21 @@ def _snapshot(item: Any, identity: tuple[str, str]) -> MailSnapshot:
     except Exception:
         organizer = _field(item, "Organizer") if item_type == "appointment" else None
         sender = organizer[:500] if isinstance(organizer, str) else "（寄件者資訊不可讀）"
+    received_at = ""
     try:
         received_at = _received_time(item.ReceivedTime)
     except Exception:
-        received_at = ""
+        pass
+    if not received_at:
+        try:
+            # PR_MESSAGE_DELIVERY_TIME is UTC, even when COM returns a naive value.
+            delivered = item.PropertyAccessor.GetProperty("http://schemas.microsoft.com/mapi/proptag/0x0E060040")
+            if isinstance(delivered, datetime):
+                if delivered.tzinfo is None:
+                    delivered = delivered.replace(tzinfo=timezone.utc)
+                received_at = _received_time(delivered)
+        except Exception:
+            pass
     internet_message_id = ""
     try:
         accessor = item.PropertyAccessor

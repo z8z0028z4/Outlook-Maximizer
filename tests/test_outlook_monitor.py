@@ -141,6 +141,20 @@ class SourceTests(unittest.TestCase):
     def test_unknown_received_time_stays_unknown(self):
         self.assertEqual(_received_time(None), "")
 
+    def test_missing_received_time_falls_back_to_native_utc_delivery_time(self):
+        item = mail_item()
+        del item.ReceivedTime
+        delivery_property = "http://schemas.microsoft.com/mapi/proptag/0x0E060040"
+        item.PropertyAccessor.GetProperty = lambda name: datetime(2026, 11, 11, 3, 53) if name == delivery_property else ""
+        snapshot = _snapshot(item, _item_identity(item))
+        self.assertEqual(snapshot.received_at, "2026-11-11T03:53:00+00:00")
+
+    def test_unavailable_received_and_delivery_time_do_not_invent_a_date(self):
+        item = mail_item()
+        item.ReceivedTime = None
+        item.PropertyAccessor.GetProperty = Mock(side_effect=RuntimeError("unavailable"))
+        self.assertEqual(_snapshot(item, _item_identity(item)).received_at, "")
+
     def test_sender_access_failure_does_not_discard_readable_body(self):
         class ProtectedSender:
             def __getattr__(self, name):
