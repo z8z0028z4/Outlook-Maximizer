@@ -79,6 +79,24 @@ class AITests(unittest.TestCase):
         prompt = build_reply_prompt(MAIL, "Asia/Taipei", about_me="x" * 6000 + "PRIVATE_TAIL")
         self.assertNotIn("PRIVATE_TAIL", prompt)
 
+    def test_calendar_preferences_drive_event_rules_and_default_applies_when_blank(self):
+        from outlook_maximizer.settings import DEFAULT_CALENDAR_PREFERENCES
+        custom = "只有開始時間時，結束時間預設為開始後 2 小時。"
+        prompt = build_prompt(MAIL, "Asia/Taipei", calendar_preferences=custom)
+        self.assertIn(custom, prompt)
+        self.assertIn("以行事曆偏好為準", prompt)
+        self.assertNotIn("不要擅自假設會議長度", prompt)
+        default_prompt = build_prompt(MAIL, "Asia/Taipei")
+        self.assertIn(json.dumps(DEFAULT_CALENDAR_PREFERENCES, ensure_ascii=False)[1:-1], default_prompt)
+        self.assertNotIn("TAIL", build_prompt(MAIL, "Asia/Taipei", calendar_preferences="x" * 6000 + "TAIL"))
+
+    def test_provider_sends_calendar_preferences(self):
+        provider = self.provider()
+        provider.settings.calendar_preferences = "會議連結完整貼入備註"
+        with patch.object(provider, "_execute", return_value=stream(RESULT)) as execute:
+            provider.analyze(MAIL)
+        self.assertIn("會議連結完整貼入備註", execute.call_args.args[0])
+
     def test_native_meeting_metadata_and_cancellation_semantics_reach_prompt(self):
         meeting = SimpleNamespace(**{**MAIL.__dict__, "item_type": "meeting_request", "meeting_context":
                                   '{"start":"2026-10-22T11:00:00+08:00","end":"2026-10-22T12:00:00+08:00"}'})

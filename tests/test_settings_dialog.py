@@ -247,6 +247,16 @@ class SettingsDialogTests(unittest.TestCase):
         self.dialog.save_button.click()
         self.assertEqual(self.saved[0].about_me, "我的角色：研發工程師\n回覆先確認需求。")
 
+    def test_calendar_preferences_show_default_and_save_custom_text(self):
+        from outlook_maximizer.settings import DEFAULT_CALENDAR_PREFERENCES
+        self.assertEqual(self.dialog.calendar_preferences_edit.toPlainText(), DEFAULT_CALENDAR_PREFERENCES)
+        self.dialog.calendar_preferences_edit.setPlainText("只有開始時間時，結束預設 +2 小時。")
+        self.dialog.save_button.click()
+        self.assertEqual(self.saved[-1].calendar_preferences, "只有開始時間時，結束預設 +2 小時。")
+        self.dialog._reset_calendar_preferences()
+        self.dialog.save_button.click()
+        self.assertEqual(self.saved[-1].calendar_preferences, "")
+
     def test_too_long_about_me_is_not_silently_saved(self):
         self.dialog.about_me_edit.setPlainText("x" * 6001)
         self.dialog.save_button.click()

@@ -93,6 +93,15 @@ def discover_antigravity() -> str:
     return str(candidate) if candidate.is_file() else ""
 
 
+DEFAULT_CALENDAR_PREFERENCES = """1. 只擷取郵件有依據的會議或明確截止日。
+2. 原信有年份依原文；省略年份的月日（如 12/1）以收信年份為準，明確是即將到來且跨年的活動則用下一年。
+3. 相對日期（如明天、下週一）以收信時間為基準。
+4. 同一活動的日期與時刻可能分散在前言與議程表，要合併閱讀；一日活動以首項開始至末項結束為範圍。
+5. 不要擅自假設會議長度：只寫開始時間時，結束時間留空並標示需確認。
+6. 日期不明確、或有多個互斥選項時，標示需確認。
+7. 備註只放行程所需資訊，不要複製整封郵件。"""
+
+
 @dataclass
 class Settings:
     ui_language: str = "en"
@@ -107,6 +116,7 @@ class Settings:
     claude_model: str = ""
     claude_effort: str = ""
     about_me: str = ""
+    calendar_preferences: str = ""
     calendar_id: str = "primary"
     timezone: str = "Asia/Taipei"
     ai_timeout_seconds: int = 120
@@ -159,6 +169,7 @@ class Settings:
                 config.antigravity_path = discover_antigravity() or config.antigravity_path
             config.claude_path = discover_claude(config.claude_path) or config.claude_path
             config.about_me = config.about_me.strip()[:6000]
+            config.calendar_preferences = config.calendar_preferences.strip()[:6000]
             config.debounce_ms = max(250, min(config.debounce_ms, 3000))
             config.floating_opacity = max(.08, min(config.floating_opacity, 1.0))
             if config.ai_provider not in {"codex", "antigravity", "claude"}:
