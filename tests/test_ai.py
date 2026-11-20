@@ -86,6 +86,7 @@ class AITests(unittest.TestCase):
         self.assertIn(custom, prompt)
         self.assertIn("以行事曆偏好為準", prompt)
         self.assertNotIn("不要擅自假設會議長度", prompt)
+        self.assertIn("依行事曆偏好推算或預設出的日期時間，視為已決定的值", prompt)
         default_prompt = build_prompt(MAIL, "Asia/Taipei")
         self.assertIn(json.dumps(DEFAULT_CALENDAR_PREFERENCES, ensure_ascii=False)[1:-1], default_prompt)
         self.assertNotIn("TAIL", build_prompt(MAIL, "Asia/Taipei", calendar_preferences="x" * 6000 + "TAIL"))

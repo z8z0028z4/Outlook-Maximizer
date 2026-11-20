@@ -163,7 +163,9 @@ summary 必須至少一點；沒有待辦或行程則回傳空陣列；不要把
 輸出格式（固定，供程式解析）：
 - 時區未另指定時使用 {timezone}；start/end 使用含 UTC offset 的 ISO 8601。
 - all_day=true 時 start/end 使用 YYYY-MM-DD，end 為不包含的下一天。
-- 無法確定的一端用空字串，並設 needs_review=true；evidence 保留支持日期時間的一小段原文。
+- 依行事曆偏好推算或預設出的日期時間，視為已決定的值，必須填入 start/end，不可留空。
+  只有原信與偏好都無法決定的一端才用空字串並設 needs_review=true。
+- 是否設 needs_review 依行事曆偏好判斷；evidence 保留支持日期時間的一小段原文。
 - received_at 是收信時間；今天系統日期是 {datetime.now().astimezone().isoformat()}。
 - meeting_context 是 Outlook 原生會議欄位。item_type=meeting_cancellation（已取消）或
   meeting_response_positive/negative/tentative、meeting_forward（回覆／狀態通知）時，events 必須為空，不要新增已取消的會議。

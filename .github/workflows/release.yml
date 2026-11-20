@@ -74,10 +74,11 @@ jobs:
 
           ## Calendar preferences / 行事曆偏好
           - New Settings section "Calendar preferences": free-text instructions the AI follows when extracting events (date/time defaults, notes content). Separate from About me and takes precedence for events. / 設定新增「行事曆偏好」區塊：AI 擷取行程時依此自由文字判斷日期、時間預設值與備註內容；與 About me 分開，行程以此為準。
+          - Times derived from your preferences (e.g. default duration) are now filled in instead of left blank. / 依偏好推算出的時間（如預設長度）會直接填入，不再留空。
           - Former hard-coded defaulting rules are now the editable default text; blank uses the defaults, with a Restore default button. / 原本寫死的預設規則改為可編輯的預設文字；留白即用預設，並提供「恢復預設」。
 
           ## Quick test / 快速測試
-          Exit the previous app first. In Settings > Calendar preferences, change rule 5 to "if only a start time is given, end 2 hours later", save, then regenerate the D500 year-end party email summary and check the end time is 13:30. / 請先結束舊版；在設定「行事曆偏好」把第 5 條改為「只有開始時間時，結束時間預設為開始後 2 小時」，儲存後重新產生 D500 尾牙信摘要，確認結束時間為 13:30。
+          Exit the previous app first. In Settings > Calendar preferences, set a default duration rule (e.g. "if only a start time is given, end 1 hour later"), save, then regenerate the D500 year-end party email summary and check the end time is 12:30. / 請先結束舊版；在設定「行事曆偏好」設定預設長度規則（如「只寫開始時間時，結束時間往後預設一小時」），儲存後重新產生 D500 尾牙信摘要，確認結束時間為 12:30。
 
           This is a prerelease for testing; AI adherence to preferences still needs validation with a real Outlook/AI account. / 此為測試版，AI 對偏好的遵循度仍需以實際 Outlook 與 AI 帳號驗證。
 
