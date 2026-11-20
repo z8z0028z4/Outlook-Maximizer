@@ -118,7 +118,8 @@ class AntigravitySummarizer(CodexSummarizer):
         schema["required"].remove("reply_draft")
         prompt = build_prompt(mail, self.settings.timezone, include_reply=False,
                               about_me=getattr(self.settings, "about_me", ""),
-                              summary_language=getattr(self.settings, "ui_language", "en"))
+                              summary_language=getattr(self.settings, "ui_language", "en"),
+                              calendar_preferences=getattr(self.settings, "calendar_preferences", ""))
         prompt += "\n本次輸出 schema 沒有 reply_draft，請省略此欄位，完全不要生成回覆草稿。\n"
         data = self._final_data(self._execute(prompt, cancel, schema_override=schema))
         if set(data) != {"summary", "action_items", "events"}:

@@ -13,7 +13,7 @@ from PyQt6.QtWidgets import (
     QPlainTextEdit, QPushButton, QScrollArea, QSlider, QSpinBox, QVBoxLayout, QWidget,
 )
 
-from .settings import Settings
+from .settings import DEFAULT_CALENDAR_PREFERENCES, Settings
 from .floating_panel import surface_colors
 from .model_catalog import ModelOption, antigravity_model_effort
 from .i18n import tr
@@ -156,6 +156,22 @@ class SettingsDialog(QDialog):
         self._update_profile_count()
         body.addWidget(self.about_me_count)
         body.addWidget(_label(self._t("可留白；內容會隨摘要與回覆請求送到你選擇的 AI。最多 6000 字。"), muted=True))
+
+        self._section(body, self._t("行事曆偏好"))
+        body.addWidget(_label(self._t("AI 擷取行程時依照這段指示判斷日期、時間、預設值與備註內容；可自由改寫。"), muted=True))
+        self.calendar_preferences_edit = QPlainTextEdit(settings.calendar_preferences or DEFAULT_CALENDAR_PREFERENCES)
+        self.calendar_preferences_edit.setAccessibleName(self._t("行事曆偏好"))
+        self.calendar_preferences_edit.setFixedHeight(180)
+        body.addWidget(self.calendar_preferences_edit)
+        calendar_row = QHBoxLayout()
+        calendar_row.addWidget(_button(self._t("恢復預設"), self._reset_calendar_preferences))
+        calendar_row.addStretch()
+        self.calendar_preferences_count = _label(muted=True)
+        calendar_row.addWidget(self.calendar_preferences_count)
+        body.addLayout(calendar_row)
+        self.calendar_preferences_edit.textChanged.connect(self._update_calendar_preferences_count)
+        self._update_calendar_preferences_count()
+        body.addWidget(_label(self._t("留白會使用預設規則。最多 6000 字。"), muted=True))
 
         self._section(body, self._t("浮窗外觀"))
         opacity_row = QHBoxLayout()
@@ -367,6 +383,12 @@ class SettingsDialog(QDialog):
     def _update_profile_count(self) -> None:
         self.about_me_count.setText(f"{len(self.about_me_edit.toPlainText())} / 6000")
 
+    def _update_calendar_preferences_count(self) -> None:
+        self.calendar_preferences_count.setText(f"{len(self.calendar_preferences_edit.toPlainText())} / 6000")
+
+    def _reset_calendar_preferences(self) -> None:
+        self.calendar_preferences_edit.setPlainText(DEFAULT_CALENDAR_PREFERENCES)
+
     def _update_font_preview(self) -> None:
         font = QFont(self.font_combo.currentText().strip() or "Microsoft JhengHei UI",
                      self.font_size_spin.value())
@@ -531,6 +553,11 @@ class SettingsDialog(QDialog):
             about_me = self.about_me_edit.toPlainText().strip()
             if len(about_me) > 6000:
                 raise ValueError(self._t("About me 最多 6000 字，請縮短後再儲存。"))
+            calendar_preferences = self.calendar_preferences_edit.toPlainText().strip()
+            if len(calendar_preferences) > 6000:
+                raise ValueError(self._t("行事曆偏好最多 6000 字，請縮短後再儲存。"))
+            if calendar_preferences == DEFAULT_CALENDAR_PREFERENCES.strip():
+                calendar_preferences = ""
             font_family = self.font_combo.currentText().strip()
             if not font_family or len(font_family) > 100 or re.search(r"[\x00-\x1f\x7f-\x9f]", font_family):
                 raise ValueError(self._t("請選擇有效字型，字型名稱最多 100 字。"))
@@ -546,7 +573,7 @@ class SettingsDialog(QDialog):
                 antigravity_effort=antigravity_model_effort(antigravity_model),
                 claude_path=claude_path, claude_model=claude_model,
                 claude_effort=self.claude_effort_combo.currentData(),
-                about_me=about_me,
+                about_me=about_me, calendar_preferences=calendar_preferences,
                 calendar_id=calendar_id, ai_timeout_seconds=int(raw_timeout),
                 auto_summarize=self.auto_summary_check.isChecked(),
                 auto_reply=self.auto_reply_check.isChecked(),

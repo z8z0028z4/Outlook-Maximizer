@@ -56,12 +56,12 @@ def event_label(event: CalendarEvent, language: str = "en") -> str:
 def _ai_identity(settings: Settings) -> tuple[str, ...]:
     if settings.ai_provider == "antigravity":
         return (settings.ai_provider, settings.antigravity_path, settings.antigravity_model,
-                settings.antigravity_effort, settings.timezone, settings.about_me, settings.ui_language)
+                settings.antigravity_effort, settings.timezone, settings.about_me, settings.calendar_preferences, settings.ui_language)
     if settings.ai_provider == "claude":
         return (settings.ai_provider, settings.claude_path, settings.claude_model,
-                settings.claude_effort, settings.timezone, settings.about_me, settings.ui_language)
+                settings.claude_effort, settings.timezone, settings.about_me, settings.calendar_preferences, settings.ui_language)
     return (settings.ai_provider, settings.codex_path, settings.model,
-            settings.codex_effort, settings.timezone, settings.about_me, settings.ui_language)
+            settings.codex_effort, settings.timezone, settings.about_me, settings.calendar_preferences, settings.ui_language)
 
 
 def _panel_heights(settings: Settings, screen_height: int) -> tuple[int, int]:
