@@ -72,16 +72,14 @@ jobs:
 
           從 Assets 下載 **OutlookMaximizer.exe**，在 Windows x64 雙擊即可啟動（未數位簽章）。
 
-          ## Calendar dates and AGY effort / 行程日期與 AGY 思考強度
-          - Clarify year inference for month/day dates and combine introductory dates with itinerary times. / 補強省略年份的月日判斷，合併前言日期與下方議程時間。
-          - Preserve a known start or end time in the event editor when the other is missing. / 行程起訖缺一端時，確認視窗仍保留已知日期與時間。
-          - Use Outlook's native delivery timestamp as a fallback when ReceivedTime is unavailable. / 收信時間讀取失敗時，以 Outlook 原生投遞時間作備援。
-          - Disable the AGY effort selector and align it with the selected model, including stale saved settings. / AGY effort 欄位反灰並隨模型自動對齊，同時修正舊設定不匹配的情況。
+          ## Calendar preferences / 行事曆偏好
+          - New Settings section "Calendar preferences": free-text instructions the AI follows when extracting events (date/time defaults, notes content). Separate from About me and takes precedence for events. / 設定新增「行事曆偏好」區塊：AI 擷取行程時依此自由文字判斷日期、時間預設值與備註內容；與 About me 分開，行程以此為準。
+          - Former hard-coded defaulting rules are now the editable default text; blank uses the defaults, with a Restore default button. / 原本寫死的預設規則改為可編輯的預設文字；留白即用預設，並提供「恢復預設」。
 
           ## Quick test / 快速測試
-          Exit the previous app before starting this build. Regenerate the visit email summary and check the December 1, 2026 date and known start time. Switch AGY medium/high variants and verify the disabled effort field follows the model. / 請先結束舊版再啟動；重新產生參訪信摘要，確認 2026/12/1 與已知開始時間。切換 AGY medium/high 模型，確認 effort 反灰且同步。
+          Exit the previous app first. In Settings > Calendar preferences, change rule 5 to "if only a start time is given, end 2 hours later", save, then regenerate the D500 year-end party email summary and check the end time is 13:30. / 請先結束舊版；在設定「行事曆偏好」把第 5 條改為「只有開始時間時，結束時間預設為開始後 2 小時」，儲存後重新產生 D500 尾牙信摘要，確認結束時間為 13:30。
 
-          This is a prerelease for testing. Original-email inference still needs validation with a real Outlook/AI account; unknown end times require confirmation. / 此為測試版，原信的日期推理仍需在實際 Outlook 與 AI 帳號重測；未知結束時間仍須確認。
+          This is a prerelease for testing; AI adherence to preferences still needs validation with a real Outlook/AI account. / 此為測試版，AI 對偏好的遵循度仍需以實際 Outlook 與 AI 帳號驗證。
 
           Built by GitHub Actions from commit ``$env:GITHUB_SHA``.
 
