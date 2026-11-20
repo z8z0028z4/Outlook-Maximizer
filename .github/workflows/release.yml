@@ -75,6 +75,7 @@ jobs:
           ## Calendar preferences / 行事曆偏好
           - New Settings section "Calendar preferences": free-text instructions the AI follows when extracting events (date/time defaults, notes content). Separate from About me and takes precedence for events. / 設定新增「行事曆偏好」區塊：AI 擷取行程時依此自由文字判斷日期、時間預設值與備註內容；與 About me 分開，行程以此為準。
           - Times derived from your preferences (e.g. default duration) are now filled in instead of left blank. / 依偏好推算出的時間（如預設長度）會直接填入，不再留空。
+          - Default preferences now infer dates/times proactively (1-hour default duration, all-day when no time, review only for conflicting options). / 預設偏好改為積極推論日期時間（預設 1 小時、沒時刻設全天，只有互斥選項才需確認）。
           - Former hard-coded defaulting rules are now the editable default text; blank uses the defaults, with a Restore default button. / 原本寫死的預設規則改為可編輯的預設文字；留白即用預設，並提供「恢復預設」。
 
           ## Quick test / 快速測試
